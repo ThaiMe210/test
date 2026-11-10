@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SẮCME - AI Makeup Assistant</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pink: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                        },
+                        rose: {
+                            gold: '#b76e79',
+                            soft: '#fdf2f4',
+                            deep: '#98525b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for mobile frame */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Mobile Frame Styling */
+        .mobile-frame {
+            box-shadow: 0 25px 50px -12px rgba(244, 63, 94, 0.25), 0 0 0 12px #2d3748;
+            border-radius: 40px;
+        }
+        
+        /* Smooth Fade Transitions */
+        .screen-fade {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+
+        /* Glassmorphism background */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(254, 205, 211, 0.5);
+        }
+
+        /* Virtual Try-On Overlay simulation */
+        .face-overlay {
+            mix-blend-mode: color-burn;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 min-h-screen flex items-center justify-center p-0 md:p-6 font-sans">
+
+    <!-- Outermost Wrapper / Simulator Frame -->
+    <div class="relative w-full max-w-[410px] h-[100vh] md:h-[840px] bg-gradient-to-b from-rose-50 via-white to-pink-50 mobile-frame overflow-hidden flex flex-col justify-between">
+        
+        <!-- Top Status Bar (Mobile look) -->
+        <div class="w-full bg-transparent px-6 pt-3 pb-1 flex justify-between items-center text-xs text-pink-400 z-50 select-none">
+            <span class="font-semibold">9:41</span>
+            <div class="w-20 h-4 bg-slate-800 rounded-full mx-auto -mt-2 mb-1 flex justify-center items-center">
+                <div class="w-3 h-3 bg-slate-900 rounded-full border border-slate-700"></div>
+            </div>
+            <div class="flex items-center space-x-1.5">
+                <i class="fa-solid fa-signal"></i>
+                <i class="fa-solid fa-wifi"></i>
+                <i class="fa-solid fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- App Header Bar -->
+        <header class="px-5 py-2 flex items-center justify-between border-b border-pink-100/60 bg-white/70 backdrop-blur-md z-40">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-400 to-rose-400 flex items-center justify-center text-white shadow-md shadow-pink-200">
+                    <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                </div>
+                <span class="font-serif font-bold text-lg text-slate-800 tracking-tight">SẮCME</span>
+            </div>
+            <div id="user-badge" class="hidden items-center space-x-2 bg-pink-50 px-3 py-1 rounded-full border border-pink-200">
+                <span class="text-xs font-medium text-pink-600" id="user-tone-tag">Da Sáng • Hàn Quốc</span>
+            </div>
+        </header>
+
+        <!-- Dynamic Content Scrollable Container -->
+        <main class="flex-1 overflow-y-auto no-scrollbar relative p-4 space-y-4" id="main-container">
+            
+            <!-- ==================== SCREEN 1: ĐĂNG NHẬP & GIỚI THIỆU ==================== -->
+            <section id="screen-1" class="screen-section space-y-5 animate-fadeIn">
+                <!-- Welcome Banner -->
+                <div class="relative rounded-3xl overflow-hidden p-6 text-white bg-gradient-to-br from-pink-400 via-pink-500 to-rose-400 shadow-xl shadow-pink-200/50">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
+                    <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-semibold tracking-wider uppercase mb-2">Trải Nghiệm AI Makeup</span>
+                    <h1 class="font-serif text-2xl font-bold mb-2">Đánh thức vẻ đẹp độc bản của bạn</h1>
+                    <p class="text-xs opacity-90 leading-relaxed">Gợi ý phong cách makeup chuẩn xác dựa trên sắc độ da và sở thích cá nhân bằng trí tuệ nhân tạo.</p>
+                </div>
+
+                <!-- Features Highlights Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3.5 bg-white rounded-2xl border border-pink-100 shadow-sm flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-pink-100 text-pink-500 flex items-center justify-center">
+                            <i class="fa-solid fa-face-smile text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-700">Phân Tích Da</h4>
+                            <p class="text-[10px] text-slate-400">Chính xác 98%</p>
+                        </div>
+                    </div>
+                    <div class="p-3.5 bg-white rounded-2xl border border-pink-100 shadow-sm flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center">
+                            <i class="fa-solid fa-sliders text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-700">Thử Son AI</h4>
+                            <p class="text-[10px] text-slate-400">Trực quan 3D</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Login Form -->
+                <div class="bg-white rounded-3xl p-5 border border-pink-100 shadow-sm space-y-3">
+                    <h3 class="font-bold text-sm text-slate-800 mb-1">Đăng nhập trải nghiệm nhanh</h3>
+                    <div class="space-y-2">
+                        <input type="email" placeholder="Email của bạn..." class="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-400 bg-slate-50 transition">
+                        <input type="password" placeholder="Mật khẩu" class="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-400 bg-slate-50 transition">
+                    </div>
+                    <button onclick="goToScreen(2)" class="w-full bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white font-medium text-xs py-3 rounded-xl shadow-lg shadow-pink-300/50 transition flex items-center justify-center space-x-2">
+                        <span>Bắt đầu phân tích cá nhân</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                    <div class="text-center pt-1">
+                        <button onclick="goToScreen(2)" class="text-[11px] text-pink-500 font-semibold hover:underline">Tiếp tục với tư cách Khách (Guest)</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SCREEN 2: NHẬP THÔNG TIN CÁ NHÂN ==================== -->
+            <section id="screen-2" class="screen-section hidden space-y-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="font-serif text-lg font-bold text-slate-800">Hồ Sơ & Chuẩn Đoán Da</h2>
+                        <p class="text-xs text-slate-400">Nhập thông tin để AI đưa ra tư vấn phù hợp nhất</p>
+                    </div>
+                    <span class="text-xs font-bold text-pink-500 bg-pink-100 px-2.5 py-1 rounded-full">Bước 1/3</span>
+                </div>
+
+                <form id="diagnostic-form" class="space-y-4">
+                    <!-- Skin Type Selection -->
+                    <div class="bg-white p-4 rounded-2xl border border-pink-100 shadow-sm space-y-2">
+                        <label class="text-xs font-bold text-slate-700 flex items-center justify-between">
+                            <span>1. Loại da của bạn:</span>
+                            <span class="text-[10px] text-pink-500 font-normal">*Bắt buộc</span>
+                        </label>
+                        <div class="grid grid-cols-2 gap-2" id="skin-type-options">
+                            <button type="button" onclick="selectOption('skinType', 'Da dầu', this)" class="opt-btn p-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 hover:border-pink-300 text-left transition flex items-center justify-between">
+                                <span>Da dầu</span>
+                                <i class="fa-solid fa-droplet text-pink-300 text-xs"></i>
+                            </button>
+                            <button type="button" onclick="selectOption('skinType', 'Da khô', this)" class="opt-btn p-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 hover:border-pink-300 text-left transition flex items-center justify-between">
+                                <span>Da khô</span>
+                                <i class="fa-solid fa-sun text-amber-300 text-xs"></i>
+                            </button>
+                            <button type="button" onclick="selectOption('skinType', 'Da hỗn hợp', this)" class="opt-btn p-2.5 rounded-xl border border-pink-400 bg-pink-50 text-xs font-medium text-pink-600 text-left transition flex items-center justify-between">
+                                <span>Da hỗn hợp</span>
+                                <i class="fa-solid fa-circle-half-stroke text-pink-500 text-xs"></i>
+                            </button>
+                            <button type="button" onclick="selectOption('skinType', 'Da nhạy cảm', this)" class="opt-btn p-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 hover:border-pink-300 text-left transition flex items-center justify-between">
+                                <span>Da nhạy cảm</span>
+                                <i class="fa-solid fa-heart-pulse text-rose-300 text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tone Selection -->
+                    <div class="bg-white p-4 rounded-2xl border border-pink-100 shadow-sm space-y-2">
+                        <label class="text-xs font-bold text-slate-700">2. Tone màu da (Skin Tone):</label>
+                        <div class="grid grid-cols-3 gap-2" id="skin-tone-options">
+                            <button type="button" onclick="selectOption('skinTone', 'Sáng', this)" class="opt-btn p-2.5 rounded-xl border border-pink-400 bg-pink-50 text-xs font-medium text-pink-600 text-center transition">
+                                <div class="w-6 h-6 rounded-full bg-[#fce0d6] mx-auto mb-1 border border-slate-300"></div>
+                                Sáng
+                            </button>
+                            <button type="button" onclick="selectOption('skinTone', 'Trung bình', this)" class="opt-btn p-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 text-center transition">
+                                <div class="w-6 h-6 rounded-full bg-[#e3b59b] mx-auto mb-1 border border-slate-300"></div>
+                                Trung bình
+                            </button>
+                            <button type="button" onclick="selectOption('skinTone', 'Ngăm', this)" class="opt-btn p-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 text-center transition">
+                                <div class="w-6 h-6 rounded-full bg-[#a57255] mx-auto mb-1 border border-slate-300"></div>
+                                Ngăm
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Style Desire -->
+                    <div class="bg-white p-4 rounded-2xl border border-pink-100 shadow-sm space-y-2">
+                        <label class="text-xs font-bold text-slate-700">3. Phong cách mong muốn:</label>
+                        <select id="style-select" onchange="userPreferences.style = this.value" class="w-full text-xs px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-pink-400">
+                            <option value="Hàn Quốc">Hàn Quốc (Căng bóng, tự nhiên)</option>
+                            <option value="Tự nhiên">Tự nhiên Daily Look</option>
+                            <option value="Tiệc đêm">Tiệc đêm Glamour (Quyến rũ)</option>
+                            <option value="Vintage">Vintage / Cổ điển</option>
+                        </select>
+                    </div>
+
+                    <!-- Budget Slider -->
+                    <div class="bg-white p-4 rounded-2xl border border-pink-100 shadow-sm space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <label class="font-bold text-slate-700">4. Ngân sách mua sắm:</label>
+                            <span id="budget-label" class="font-bold text-pink-500">Tầm trung (300k - 800k)</span>
+                        </div>
+                        <input type="range" min="1" max="3" value="2" step="1" onchange="updateBudget(this.value)" class="w-full accent-pink-500">
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span>Học sinh</span>
+                            <span>Tầm trung</span>
+                            <span>Cao cấp</span>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="submitDiagnostic()" class="w-full bg-gradient-to-r from-pink-500 to-rose-400 text-white font-semibold text-xs py-3.5 rounded-xl shadow-lg shadow-pink-300/50 transition">
+                        Phân Tích & Tạo Gợi Ý Mới
+                    </button>
+                </form>
+            </section>
+
+            <!-- ==================== SCREEN 3: GỢI Ý PHONG CÁCH MAKEUP ==================== -->
+            <section id="screen-3" class="screen-section hidden space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="font-serif text-lg font-bold text-slate-800">Gợi Ý Phong Cách AI</h2>
+                        <p class="text-xs text-slate-400">Dành cho Tone da: <span id="current-user-tone" class="text-pink-500 font-semibold">Sáng</span></p>
+                    </div>
+                    <button onclick="goToScreen(2)" class="text-[11px] text-slate-400 hover:text-pink-500">
+                        <i class="fa-solid fa-pen-to-square"></i> Đổi
+                    </button>
+                </div>
+
+                <!-- Interactive Virtual Try-on Simulator Canvas Container -->
+                <div class="bg-white rounded-3xl p-4 border border-pink-100 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                        <span><i class="fa-solid fa-camera text-pink-400 mr-1"></i> Mẫu Thử Gương AI (Virtual Try-on)</span>
+                        <span class="text-[10px] bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full">Live Preview</span>
+                    </div>
+
+                    <!-- Face Model Simulation Container -->
+                    <div class="relative w-full h-56 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
+                        <!-- Model Avatar Image placeholder -->
+                        <img id="avatar-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600" alt="Makeup Model" class="w-full h-full object-cover">
+                        
+                        <!-- Lip Color Blend Layer Simulation -->
+                        <div id="lip-layer" class="absolute inset-0 pointer-events-none opacity-40 mix-blend-color transition-all duration-300" style="background-color: #f43f5e;"></div>
+                        <!-- Blush Blend Layer Simulation -->
+                        <div id="blush-layer" class="absolute inset-0 pointer-events-none opacity-30 mix-blend-soft-light transition-all duration-300" style="background-color: #fb7185;"></div>
+
+                        <!-- Face Map Overlay SVG points -->
+                        <svg class="absolute inset-0 w-full h-full opacity-20 pointer-events-none" viewBox="0 0 100 100">
+                            <circle cx="50" cy="55" r="8" fill="none" stroke="#ffffff" stroke-dasharray="1,1"/>
+                            <ellipse cx="38" cy="45" rx="5" ry="3" fill="none" stroke="#ffffff"/>
+                            <ellipse cx="62" cy="45" rx="5" ry="3" fill="none" stroke="#ffffff"/>
+                        </svg>
+                    </div>
+
+                    <!-- Interactive Filter Controls -->
+                    <div class="space-y-3 pt-1">
+                        <div>
+                            <span class="text-[11px] font-semibold text-slate-600 mb-1 block">Chọn Màu Son Môi:</span>
+                            <div class="flex items-center space-x-3">
+                                <button onclick="changeLipColor('#e11d48')" class="w-7 h-7 rounded-full bg-[#e11d48] ring-2 ring-offset-1 ring-pink-400 transition transform active:scale-95"></button>
+                                <button onclick="changeLipColor('#be123c')" class="w-7 h-7 rounded-full bg-[#be123c] transition transform active:scale-95"></button>
+                                <button onclick="changeLipColor('#fb7185')" class="w-7 h-7 rounded-full bg-[#fb7185] transition transform active:scale-95"></button>
+                                <button onclick="changeLipColor('#c05621')" class="w-7 h-7 rounded-full bg-[#c05621] transition transform active:scale-95"></button>
+                                <button onclick="changeLipColor('#9f1239')" class="w-7 h-7 rounded-full bg-[#9f1239] transition transform active:scale-95"></button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center text-[11px] text-slate-600 mb-1">
+                                <span>Độ Đậm Má Hồng:</span>
+                                <span id="blush-val" class="font-bold text-pink-500">30%</span>
+                            </div>
+                            <input type="range" min="0" max="80" value="30" oninput="changeBlush(this.value)" class="w-full accent-pink-500 h-1 bg-slate-200 rounded-lg">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommended Look Card -->
+                <div id="look-card" class="bg-white rounded-3xl p-4 border border-pink-100 shadow-sm space-y-2">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] font-bold text-pink-500 uppercase tracking-wider">Phong cách tối ưu</span>
+                            <h3 id="look-title" class="font-serif text-base font-bold text-slate-800">Korean Dewy Glow Look</h3>
+                        </div>
+                        <span class="bg-rose-100 text-rose-600 text-[10px] font-bold px-2 py-0.5 rounded-md">Phù hợp 96%</span>
+                    </div>
+                    <p id="look-desc" class="text-xs text-slate-500 leading-relaxed">Tập trung vào lớp nền căng bóng mọng nước, son lòng môi đỏ hồng dịu dàng cùng dáng lông mày tự nhiên.</p>
+                    <button onclick="goToScreen(4)" class="w-full mt-2 bg-pink-50 hover:bg-pink-100 text-pink-600 font-bold text-xs py-2.5 rounded-xl border border-pink-200 transition flex items-center justify-center space-x-2">
+                        <span>Xem Bộ Mỹ Phẩm Cho Look Này</span>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ==================== SCREEN 4: GỢI Ý MỸ PHẨM ==================== -->
+            <section id="screen-4" class="screen-section hidden space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="font-serif text-lg font-bold text-slate-800">Bộ Mỹ Phẩm Gợi Ý</h2>
+                        <p class="text-xs text-slate-400">Được chọn riêng cho loại da của bạn</p>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full" id="product-count">4 Sản phẩm</span>
+                </div>
+
+                <!-- Category Filter Tabs -->
+                <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1">
+                    <button onclick="filterCategory('all', this)" class="cat-btn px-3.5 py-1.5 rounded-full bg-pink-500 text-white text-xs font-medium shadow-sm whitespace-nowrap">Tất cả</button>
+                    <button onclick="filterCategory('Son', this)" class="cat-btn px-3.5 py-1.5 rounded-full bg-white text-slate-600 border border-slate-200 text-xs font-medium whitespace-nowrap">Son Môi</button>
+                    <button onclick="filterCategory('Nền', this)" class="cat-btn px-3.5 py-1.5 rounded-full bg-white text-slate-600 border border-slate-200 text-xs font-medium whitespace-nowrap">Phấn Nền</button>
+                    <button onclick="filterCategory('Mắt', this)" class="cat-btn px-3.5 py-1.5 rounded-full bg-white text-slate-600 border border-slate-200 text-xs font-medium whitespace-nowrap">Mắt & Má</button>
+                </div>
+
+                <!-- Product Cards List Container -->
+                <div class="space-y-3" id="product-list">
+                    <!-- Dynamic insertion via JavaScript -->
+                </div>
+            </section>
+
+            <!-- ==================== SCREEN 5: LIÊN KẾT MUA HÀNG ==================== -->
+            <section id="screen-5" class="screen-section hidden space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="font-serif text-lg font-bold text-slate-800">Giỏ Hàng & Liên Kết Mua</h2>
+                        <p class="text-xs text-slate-400">So sánh giá và mua trực tiếp tại sàn</p>
+                    </div>
+                    <i class="fa-solid fa-bag-shopping text-pink-500 text-lg"></i>
+                </div>
+
+                <!-- Selected Items List -->
+                <div class="bg-white rounded-3xl p-4 border border-pink-100 shadow-sm space-y-3" id="cart-container">
+                    <h3 class="text-xs font-bold text-slate-700 border-b border-slate-100 pb-2">Danh sách các sản phẩm chọn mua</h3>
+                    <div id="cart-items" class="space-y-3">
+                        <!-- Items rendered via JS -->
+                    </div>
+                    
+                    <div class="border-t border-slate-100 pt-3 space-y-1.5 text-xs">
+                        <div class="flex justify-between text-slate-500">
+                            <span>Tạm tính:</span>
+                            <span id="cart-subtotal" class="font-semibold text-slate-700">0 VNĐ</span>
+                        </div>
+                        <div class="flex justify-between text-slate-500">
+                            <span>Ưu đãi ứng dụng (SẮCME):</span>
+                            <span class="text-pink-500 font-semibold">-10%</span>
+                        </div>
+                        <div class="flex justify-between text-sm font-bold text-slate-800 pt-1 border-t border-dashed border-slate-200">
+                            <span>Tổng tiền dự kiến:</span>
+                            <span id="cart-total" class="text-pink-600">0 VNĐ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Affiliate Partners Links -->
+                <div class="bg-white rounded-3xl p-4 border border-pink-100 shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold text-slate-700">Liên kết mua hàng chính hãng</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="simulateExternalCheckout('Shopee')" class="p-3 border border-orange-200 bg-orange-50/50 rounded-2xl flex items-center space-x-2.5 hover:bg-orange-100/50 transition">
+                            <div class="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold text-xs">S</div>
+                            <div class="text-left">
+                                <h4 class="text-xs font-bold text-slate-800">Shopee Mall</h4>
+                                <p class="text-[9px] text-orange-600 font-medium">Voucher -15k</p>
+                            </div>
+                        </button>
+
+                        <button onclick="simulateExternalCheckout('Lazada')" class="p-3 border border-blue-200 bg-blue-50/50 rounded-2xl flex items-center space-x-2.5 hover:bg-blue-100/50 transition">
+                            <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xs">L</div>
+                            <div class="text-left">
+                                <h4 class="text-xs font-bold text-slate-800">Lazada LazMall</h4>
+                                <p class="text-[9px] text-blue-600 font-medium">Freeship max</p>
+                            </div>
+                        </button>
+                    </div>
+
+                    <button onclick="simulateExternalCheckout('Official Direct')" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs py-3 rounded-xl shadow-lg shadow-pink-300/40 transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-lock text-xs"></i>
+                        <span>Thanh Toán Nhanh Qua SẮCME Pay</span>
+                    </button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bg-white border-t border-pink-100 px-3 py-2 flex justify-around items-center z-40 rounded-b-[32px]">
+            <button onclick="goToScreen(1)" class="nav-btn flex flex-col items-center p-1 text-pink-500" data-screen="1">
+                <i class="fa-solid fa-house text-base"></i>
+                <span class="text-[9px] font-medium mt-0.5">Trang chủ</span>
+            </button>
+            <button onclick="goToScreen(2)" class="nav-btn flex flex-col items-center p-1 text-slate-400 hover:text-pink-400" data-screen="2">
+                <i class="fa-solid fa-user-pen text-base"></i>
+                <span class="text-[9px] font-medium mt-0.5">Hồ sơ</span>
+            </button>
+            <button onclick="goToScreen(3)" class="nav-btn flex flex-col items-center p-1 text-slate-400 hover:text-pink-400" data-screen="3">
+                <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                <span class="text-[9px] font-medium mt-0.5">Makeup AI</span>
+            </button>
+            <button onclick="goToScreen(4)" class="nav-btn flex flex-col items-center p-1 text-slate-400 hover:text-pink-400" data-screen="4">
+                <i class="fa-solid fa-spray-can-sparkles text-base"></i>
+                <span class="text-[9px] font-medium mt-0.5">Mỹ phẩm</span>
+            </button>
+            <button onclick="goToScreen(5)" class="nav-btn flex flex-col items-center p-1 text-slate-400 hover:text-pink-400 relative" data-screen="5">
+                <i class="fa-solid fa-bag-shopping text-base"></i>
+                <span id="cart-badge" class="absolute top-0 right-2 bg-pink-500 text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center hidden">0</span>
+                <span class="text-[9px] font-medium mt-0.5">Mua hàng</span>
+            </button>
+        </nav>
+
+        <!-- Toast Notification Popup -->
+        <div id="toast" class="absolute bottom-16 left-1/2 transform -translate-x-1/2 bg-slate-800/90 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-50 flex items-center space-x-2">
+            <i class="fa-solid fa-circle-check text-emerald-400"></i>
+            <span id="toast-msg">Thông báo thành công</span>
+        </div>
+
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Global User State
+        let userPreferences = {
+            skinType: 'Da hỗn hợp',
+            skinTone: 'Sáng',
+            style: 'Hàn Quốc',
+            budget: 2
+        };
+
+        // Cosmetic Products Database
+        const productsDatabase = [
+            {
+                id: 1,
+                name: 'Son Kem Lì Romand Velvet Tint',
+                category: 'Son',
+                price: 175000,
+                rating: 4.8,
+                reviews: 1240,
+                image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&q=80&w=300',
+                desc: 'Màu son môi mịn mượt, giữ màu lâu cho phong cách Hàn Quốc.',
+                toneFit: 'Sáng'
+            },
+            {
+                id: 2,
+                name: 'Phấn Nền Cushion Laneige Neo Matte',
+                category: 'Nền',
+                price: 650000,
+                rating: 4.9,
+                reviews: 890,
+                image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80&w=300',
+                desc: 'Lớp nền che phủ cao kiềm dầu 24h nhẹ dịu.',
+                toneFit: 'Sáng'
+            },
+            {
+                id: 3,
+                name: 'Phấn Má Hồng 3CE Face Blush',
+                category: 'Mắt',
+                price: 320000,
+                rating: 4.7,
+                reviews: 650,
+                image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&q=80&w=300',
+                desc: 'Tone màu hồng đào tự nhiên tô điểm đôi má ửng hồng.',
+                toneFit: 'Trung bình'
+            },
+            {
+                id: 4,
+                name: 'Mascara Maybelline Lash Sensational',
+                category: 'Mắt',
+                price: 195000,
+                rating: 4.6,
+                reviews: 2100,
+                image: 'https://images.unsplash.com/photo-1631214524020-7e18db9a8f92?auto=format&fit=crop&q=80&w=300',
+                desc: 'Làm dầy và tơi mi không gây bết dính chống nước.',
+                toneFit: 'Ngăm'
+            }
+        ];
+
+        // Cart State
+        let cart = [
+            { ...productsDatabase[0], quantity: 1 },
+            { ...productsDatabase[1], quantity: 1 }
+        ];
+
+        // Screen Switcher
+        function goToScreen(screenNumber) {
+            // Hide all screens
+            document.querySelectorAll('.screen-section').forEach(el => {
+                el.classList.add('hidden');
+            });
+
+            // Show selected screen
+            const target = document.getElementById(`screen-${screenNumber}`);
+            if (target) {
+                target.classList.remove('hidden');
+            }
+
+            // Update Bottom Nav Styling
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.screen == screenNumber) {
+                    btn.classList.remove('text-slate-400');
+                    btn.classList.add('text-pink-500');
+                } else {
+                    btn.classList.remove('text-pink-500');
+                    btn.classList.add('text-slate-400');
+                }
+            });
+
+            // Trigger updates if entering specific screens
+            if (screenNumber === 3) updateLookRecommendation();
+            if (screenNumber === 4) renderProducts('all');
+            if (screenNumber === 5) renderCart();
+
+            // Scroll container to top
+            document.getElementById('main-container').scrollTop = 0;
+        }
+
+        // Handle Option Selection in Form
+        function selectOption(category, value, elem) {
+            userPreferences[category] = value;
+            const parent = elem.parentElement;
+            parent.querySelectorAll('.opt-btn').forEach(btn => {
+                btn.className = "opt-btn p-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 text-left transition flex items-center justify-between";
+            });
+            elem.className = "opt-btn p-2.5 rounded-xl border border-pink-400 bg-pink-50 text-xs font-medium text-pink-600 text-left transition flex items-center justify-between";
+        }
+
+        // Budget Slider Update
+        function updateBudget(val) {
+            userPreferences.budget = val;
+            const label = document.getElementById('budget-label');
+            if (val == 1) label.innerText = "Học sinh (< 300k)";
+            else if (val == 2) label.innerText = "Tầm trung (300k - 800k)";
+            else label.innerText = "Cao cấp (> 800k)";
+        }
+
+        // Submit Profile Form
+        function submitDiagnostic() {
+            // Display User Badge
+            const badge = document.getElementById('user-badge');
+            const tag = document.getElementById('user-tone-tag');
+            tag.innerText = `Da ${userPreferences.skinTone} • ${userPreferences.style}`;
+            badge.classList.remove('hidden');
+            badge.classList.add('flex');
+
+            showToast("Đã lưu thông tin chuẩn đoán da!");
+            goToScreen(3);
+        }
+
+        // Update Screen 3 AI recommendations
+        function updateLookRecommendation() {
+            document.getElementById('current-user-tone').innerText = userPreferences.skinTone;
+            const lookTitle = document.getElementById('look-title');
+            const lookDesc = document.getElementById('look-desc');
+
+            if (userPreferences.style === 'Hàn Quốc') {
+                lookTitle.innerText = "Korean Dewy Glow Look";
+                lookDesc.innerText = "Tập trung lớp nền mỏng nhẹ mọng nước, mi cong tự nhiên kết hợp màu son môi dâu tây ngọt ngào.";
+            } else if (userPreferences.style === 'Tiệc đêm') {
+                lookTitle.innerText = "Glamour Night Party Look";
+                lookDesc.innerText = "Điểm nhấn đôi mắt sắc sảo màu khói nhẹ cùng son môi màu đỏ rượu quyến rũ cuốn hút.";
+            } else if (userPreferences.style === 'Vintage') {
+                lookTitle.innerText = "Classic Vintage Elegance Look";
+                lookDesc.innerText = "Tông má cam đất nhẹ nhàng, đường kẻ eyeliner mắt mèo thanh lịch cổ điển.";
+            } else {
+                lookTitle.innerText = "Natural Daily Warm Look";
+                lookDesc.innerText = "Lớp trang điểm trong trẻo nhẹ nhàng phù hợp đi học, đi làm hàng ngày.";
+            }
+        }
+
+        // Virtual Try-on Filter controls
+        function changeLipColor(hex) {
+            const lipLayer = document.getElementById('lip-layer');
+            lipLayer.style.backgroundColor = hex;
+            showToast("Đã đổi màu son môt thử nghiệm");
+        }
+
+        function changeBlush(val) {
+            document.getElementById('blush-val').innerText = val + '%';
+            document.getElementById('blush-layer').style.opacity = val / 100;
+        }
+
+        // Render Product Recommendations
+        function renderProducts(categoryFilter) {
+            const container = document.getElementById('product-list');
+            container.innerHTML = '';
+
+            const filtered = categoryFilter === 'all' 
+                ? productsDatabase 
+                : productsDatabase.filter(p => p.category === categoryFilter);
+
+            document.getElementById('product-count').innerText = `${filtered.length} Sản phẩm`;
+
+            filtered.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-3.5 rounded-2xl border border-pink-100 shadow-sm flex space-x-3 items-center";
+                card.innerHTML = `
+                    <img src="${p.image}" class="w-20 h-20 rounded-xl object-cover bg-pink-50" alt="${p.name}">
+                    <div class="flex-1 space-y-1">
+                        <div class="flex justify-between items-start">
+                            <span class="text-[9px] bg-pink-50 text-pink-600 px-2 py-0.5 rounded-md font-semibold">${p.category}</span>
+                            <span class="text-[10px] text-amber-500 font-bold"><i class="fa-solid fa-star text-[9px]"></i> ${p.rating}</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-slate-800 leading-tight">${p.name}</h4>
+                        <p class="text-[10px] text-slate-400 line-clamp-1">${p.desc}</p>
+                        <div class="flex items-center justify-between pt-1">
+                            <span class="text-xs font-bold text-pink-600">${p.price.toLocaleString('vi-VN')} đ</span>
+                            <button onclick="addToCart(${p.id})" class="px-2.5 py-1 bg-pink-50 hover:bg-pink-500 hover:text-white text-pink-600 text-[10px] font-bold rounded-lg transition border border-pink-200">
+                                + Thêm giỏ
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.cat-btn').forEach(b => {
+                b.className = "cat-btn px-3.5 py-1.5 rounded-full bg-white text-slate-600 border border-slate-200 text-xs font-medium whitespace-nowrap";
+            });
+            btn.className = "cat-btn px-3.5 py-1.5 rounded-full bg-pink-500 text-white text-xs font-medium shadow-sm whitespace-nowrap";
+            renderProducts(cat);
+        }
+
+        // Cart & Checkout Functions
+        function addToCart(productId) {
+            const prod = productsDatabase.find(p => p.id === productId);
+            const existing = cart.find(item => item.id === productId);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({ ...prod, quantity: 1 });
+            }
+            updateCartBadge();
+            showToast(`Đã thêm "${prod.name}" vào giỏ`);
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cart-badge');
+            const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+            if (totalItems > 0) {
+                badge.innerText = totalItems;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items');
+            container.innerHTML = '';
+
+            if (cart.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Giỏ hàng gợi ý đang trống</p>`;
+                document.getElementById('cart-subtotal').innerText = '0 đ';
+                document.getElementById('cart-total').innerText = '0 đ';
+                return;
+            }
+
+            let subtotal = 0;
+
+            cart.forEach((item, idx) => {
+                subtotal += item.price * item.quantity;
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs";
+                div.innerHTML = `
+                    <div class="flex items-center space-x-2.5">
+                        <img src="${item.image}" class="w-10 h-10 rounded-lg object-cover" alt="item">
+                        <div>
+                            <h5 class="font-bold text-slate-700 text-[11px] line-clamp-1">${item.name}</h5>
+                            <span class="text-[10px] text-pink-600 font-semibold">${item.price.toLocaleString('vi-VN')} đ x ${item.quantity}</span>
+                        </div>
+                    </div>
+                    <button onclick="removeFromCart(${idx})" class="text-slate-400 hover:text-rose-500 px-2 py-1">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+
+            const total = subtotal * 0.9; // 10% discount
+            document.getElementById('cart-subtotal').innerText = subtotal.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('cart-total').innerText = total.toLocaleString('vi-VN') + ' đ';
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            renderCart();
+            updateCartBadge();
+            showToast("Đã xóa sản phẩm khỏi giỏ");
+        }
+
+        function simulateExternalCheckout(platform) {
+            showToast(`Đang chuyển hướng tới đại lý ${platform}...`);
+        }
+
+        // Toast Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2000);
+        }
+
+        // Initialize on Load
+        window.onload = function() {
+            updateCartBadge();
+        }
+    </script>
+</body>
+</html>
